@@ -44,12 +44,32 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
-      // dd($request);
+        $request->validate([
+            'title' => 'required|max:100',
+            'description' => 'required'
+        ]);
+
+        if($request->hasFile('img')){
+
+            $filenameWithExt = $request->file('img')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('img')->getClientOriginalExtension();
+             $filenameToStore = $filename.'_'.time().'.'.$extension;
+             $path = $request->file('img')->storeAs('public/img', $filenameToStore);
+
+        } else{
+            $filenameToStore = '';
+        }
+        
         $post = new Post();
         $post->title = $request->title;
         $post->description = $request->description;
+        $post->img = $filenameToStore;
         $post->save();
+
+        if ($post->save()){
+            return redirect('/posts')->with('status','Sucessfully save');
+        }
 
         return redirect('/posts');
 
@@ -61,10 +81,9 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Post $post)
     {
         //
-        $post = Post::find($id);
         return view('posts.show', compact('post'));
     }
 
@@ -74,11 +93,11 @@ class PostController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Post $post)
     {
         //
         if (Auth::check()) {
-        $post = Post::find($id);
+        // $post = Post::find($id);
         return view('posts.edit', compact('post'));
         } else {
             return redirect('login');
@@ -94,7 +113,27 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-     
+        $request->validate([
+            'title' => 'required|max:100',
+            'description' => 'required'
+        ]);
+
+        if($request->hasFile('img')){
+
+            $filenameWithExt = $request->file('img')->getClientOriginalName();
+
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+
+            $extension = $request->file('img')->getClientOriginalExtension();
+
+            $filenameToStore = $filename.'_'.time().'.'.$extension;
+
+            $path = $request->file('img')->storeAs('public/img', $filenameToStore);
+        } else{
+
+            $filenameToStore = '';
+        }
+
         $post = Post::find($id);
         $post->title = $request->title;
         $post->description = $request->description;
