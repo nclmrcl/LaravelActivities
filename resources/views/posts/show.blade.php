@@ -5,9 +5,9 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-8">
-           
-            <a class="btn button btn-info" href="/posts/create">Create New</a>
-            
+        <a class="btn button btn-info" href="/posts">Back</a> 
+            <a  href="/posts/{{$post->id}}/edit" class="btn btn-warning"> Edit </a> 
+            <br><br>
             <div class="card">       
                 <div class="card-body">
                     Title : {{ $post->title }} <br>

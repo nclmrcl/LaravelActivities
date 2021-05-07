@@ -161,4 +161,28 @@ class PostController extends Controller
             return redirect('login');
         }
     }
+
+    public function deleteBlank()
+    {
+        $delete = Post::where('title','=','')->delete();
+
+        return redirect('/posts');
+    }
+
+    public function archive()
+    {
+        $posts = Post::onlyTrashed()->get();
+
+        return view('posts.archive',compact('posts'));
+    }
+
+    public function restore($id)
+    {
+        $post = Post::withTrashed()->find($id)->restore();
+        
+        return redirect('/posts');
+    }
+
+
+
 }
