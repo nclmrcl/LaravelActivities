@@ -38,6 +38,8 @@
                             </tr>
                             @endforeach
                         </tbody>
+                        </table>
+                        Total # of Post  {{ $count }}
                 </div>
             </div>
         </div>

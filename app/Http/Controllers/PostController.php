@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,9 +16,11 @@ class PostController extends Controller
      */
     public function index()
     {
-        //
-        $posts = Post::get(); 
-        return view('posts.index', compact('posts'));
+        $user = User::find(Auth::id());
+        $posts = $user->posts()->where('title','!=','')->get();
+        $count = $user->posts()->where('title','!=','')->count();
+
+        return view('posts.index', compact('posts', 'count'));
     }
 
     /**
@@ -45,34 +48,34 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|max:100',
+            'title' => 'required|unique:posts|max:255',
             'description' => 'required'
         ]);
-
+        
         if($request->hasFile('img')){
 
             $filenameWithExt = $request->file('img')->getClientOriginalName();
+
             $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+
             $extension = $request->file('img')->getClientOriginalExtension();
-             $filenameToStore = $filename.'_'.time().'.'.$extension;
-             $path = $request->file('img')->storeAs('public/img', $filenameToStore);
 
+            $fileNameToStore = $filename.'_'.time().'.'.$extension;
+
+            $path = $request->file('img')->storeAs('public/img', $fileNameToStore);
         } else{
-            $filenameToStore = '';
+            $fileNameToStore = '';
         }
-        
+
         $post = new Post();
-        $post->title = $request->title;
-        $post->description = $request->description;
-        $post->img = $filenameToStore;
-        $post->save();
-
-        if ($post->save()){
-            return redirect('/posts')->with('status','Sucessfully save');
+        $post->fill($request->all());
+        $post->img = $fileNameToStore;
+        $post->user_id = auth()->user()->id;
+        if($post->save()){
+            $message = "Successfully save";
         }
 
-        return redirect('/posts');
-
+        return redirect('/posts')->with('message', $message);
     }
 
     /**
@@ -83,8 +86,9 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {
-        //
-        return view('posts.show', compact('post'));
+        $post = Post::find($post->id);
+        $comments = $post->comments;
+        return view('posts.show', compact('post','comments'));
     }
 
     /**
